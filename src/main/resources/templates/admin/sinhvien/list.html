@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Sinh viên - Hệ thống thi trắc nghiệm</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        /* CSS cho modal popup */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .modal-title {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        /* CSS cho thông báo trong modal */
+        .modal-message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .modal-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .modal-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h3>Phòng Giáo Vụ</h3>
+                <p th:text="${username}">admin</p>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="/admin" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-home"></i>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/monhoc" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-book"></i>
+                        Quản lý môn học
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/lop" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-users"></i>
+                        Quản lý lớp
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/sinhvien" class="sidebar-link active">
+                        <i class="sidebar-icon fas fa-user-graduate"></i>
+                        Quản lý sinh viên
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/giaovien" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-chalkboard-teacher"></i>
+                        Quản lý giáo viên
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/bode" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-question-circle"></i>
+                        Quản lý câu hỏi
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/dangky" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-calendar-alt"></i>
+                        Chuẩn bị thi
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/taikhoan" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-user-shield"></i>
+                        Quản lý tài khoản
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/logout" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-sign-out-alt"></i>
+                        Đăng xuất
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main content -->
+        <div class="main-content">
+            <h1 class="dashboard-title">Quản lý Sinh viên</h1>
+            
+            <!-- Thông báo -->
+            <div th:if="${successMessage}" class="alert-success">
+                <span th:text="${successMessage}"></span>
+            </div>
+            <div th:if="${errorMessage}" class="alert-error">
+                <span th:text="${errorMessage}"></span>
+            </div>
+            
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <button id="btnAddSinhVien" class="btn-primary">
+                    <i class="fas fa-plus"></i> Thêm Sinh viên
+                </button>
+            </div>
+            
+            <!-- Bảng danh sách sinh viên -->
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Mã SV</th>
+                            <th>Họ</th>
+                            <th>Tên</th>
+                            <th>Ngày sinh</th>
+                            <th>Địa chỉ</th>
+                            <th>Lớp</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="sinhVien : ${sinhViens}" th:if="${sinhViens != null && !sinhViens.empty}">
+                            <td th:text="${sinhVien.MASV}"></td>
+                            <td th:text="${sinhVien.HO}"></td>
+                            <td th:text="${sinhVien.TEN}"></td>
+                            <td th:text="${#temporals.format(sinhVien.NGAYSINH, 'dd/MM/yyyy')}"></td>
+                            <td th:text="${sinhVien.DIACHI}"></td>
+                            <td th:text="${sinhVien.MALOP}"></td>
+                            <td class="action-buttons">
+                                <button class="btn-small btn-edit" th:data-masv="${sinhVien.MASV}" onclick="openEditModal(this.getAttribute('data-masv'))">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <a th:href="@{/admin/sinhvien/delete/{maSV}(maSV=${sinhVien.MASV})}" 
+                                   class="btn-small btn-delete"
+                                   onclick="return confirm('Bạn có chắc chắn muốn xóa sinh viên này?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${sinhViens == null || sinhViens.empty}">
+                            <td colspan="7" class="text-center">Không có dữ liệu</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Thêm Sinh Viên -->
+    <div id="addSinhVienModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 class="modal-title">Thêm Sinh viên</h2>
+            
+            <!-- Thông báo trong modal -->
+            <div id="modalSuccess" class="modal-message modal-success"></div>
+            <div id="modalError" class="modal-message modal-error"></div>
+            
+            <!-- Form thêm sinh viên -->
+            <div class="form-container">
+                <form id="addSinhVienForm">
+                    <div class="form-section">
+                        <h2 class="section-title">Thông tin sinh viên</h2>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="ho">Họ <span class="required">*</span></label>
+                                <input type="text" id="ho" name="ho" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="ten">Tên <span class="required">*</span></label>
+                                <input type="text" id="ten" name="ten" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="ngaySinh">Ngày sinh <span class="required">*</span></label>
+                            <input type="date" id="ngaySinh" name="ngaySinh" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="diaChi">Địa chỉ</label>
+                            <input type="text" id="diaChi" name="diaChi">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="maLop">Lớp <span class="required">*</span></label>
+                            <select id="maLop" name="maLop" required>
+                                <option value="">-- Chọn lớp --</option>
+                                <option th:each="lop : ${lops}" th:value="${lop.MALOP}" th:text="${lop.TENLOP}"></option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h2 class="section-title">Thông tin tài khoản</h2>
+                        
+                        <div class="form-group">
+                            <label for="loginname">Tên đăng nhập <span class="required">*</span></label>
+                            <input type="text" id="loginname" name="loginname" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="password">Mật khẩu <span class="required">*</span></label>
+                                <input type="password" id="password" name="password" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirmPassword">Xác nhận mật khẩu <span class="required">*</span></label>
+                                <input type="password" id="confirmPassword" name="confirmPassword" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" id="btnCancel">Hủy</button>
+                        <button type="submit" class="btn-primary">Lưu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Chỉnh sửa Sinh Viên -->
+    <div id="editSinhVienModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 class="modal-title">Cập nhật Sinh viên</h2>
+            
+            <!-- Thông báo trong modal -->
+            <div id="editModalSuccess" class="modal-message modal-success"></div>
+            <div id="editModalError" class="modal-message modal-error"></div>
+            
+            <!-- Form chỉnh sửa sinh viên -->
+            <div class="form-container">
+                <form id="editSinhVienForm">
+                    <input type="hidden" id="editMaSV" name="maSV">
+                    
+                    <div class="form-section">
+                        <h2 class="section-title">Thông tin sinh viên</h2>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="editHo">Họ <span class="required">*</span></label>
+                                <input type="text" id="editHo" name="ho" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editTen">Tên <span class="required">*</span></label>
+                                <input type="text" id="editTen" name="ten" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editNgaySinh">Ngày sinh <span class="required">*</span></label>
+                            <input type="date" id="editNgaySinh" name="ngaySinh" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editDiaChi">Địa chỉ</label>
+                            <input type="text" id="editDiaChi" name="diaChi">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editMaLop">Lớp <span class="required">*</span></label>
+                            <select id="editMaLop" name="maLop" required>
+                                <option value="">-- Chọn lớp --</option>
+                                <option th:each="lop : ${lops}" th:value="${lop.MALOP}" th:text="${lop.TENLOP}"></option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h2 class="section-title">Thông tin tài khoản</h2>
+                        
+                        <div class="form-group">
+                            <label for="editLoginname">Tên đăng nhập</label>
+                            <input type="text" id="editLoginname" name="loginname" readonly>
+                            <small>Tên đăng nhập không thể thay đổi</small>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="editPassword">Mật khẩu mới</label>
+                                <input type="password" id="editPassword" name="password">
+                                <small>Để trống nếu không muốn thay đổi mật khẩu</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="editConfirmPassword">Xác nhận mật khẩu mới</label>
+                                <input type="password" id="editConfirmPassword" name="confirmPassword">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" id="btnEditCancel">Hủy</button>
+                        <button type="submit" class="btn-primary">Lưu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Lấy modal thêm sinh viên
+        var addModal = document.getElementById("addSinhVienModal");
+        
+        // Lấy nút mở modal thêm
+        var addBtn = document.getElementById("btnAddSinhVien");
+        
+        // Lấy phần tử đóng modal thêm
+        var addCloseSpan = addModal.getElementsByClassName("close")[0];
+        var btnAddCancel = document.getElementById("btnCancel");
+        
+        // Lấy thông báo trong modal thêm
+        var addModalSuccess = document.getElementById("modalSuccess");
+        var addModalError = document.getElementById("modalError");
+        
+        // Lấy modal chỉnh sửa sinh viên
+        var editModal = document.getElementById("editSinhVienModal");
+        
+        // Lấy phần tử đóng modal chỉnh sửa
+        var editCloseSpan = editModal.getElementsByClassName("close")[0];
+        var btnEditCancel = document.getElementById("btnEditCancel");
+        
+        // Lấy thông báo trong modal chỉnh sửa
+        var editModalSuccess = document.getElementById("editModalSuccess");
+        var editModalError = document.getElementById("editModalError");
+        
+        // Khi người dùng nhấp vào nút thêm, mở modal thêm
+        addBtn.onclick = function() {
+            addModal.style.display = "block";
+            // Reset form và thông báo
+            document.getElementById("addSinhVienForm").reset();
+            addModalSuccess.style.display = "none";
+            addModalError.style.display = "none";
+        }
+        
+        // Khi người dùng nhấp vào nút đóng (×), đóng modal thêm
+        addCloseSpan.onclick = function() {
+            addModal.style.display = "none";
+        }
+        
+        // Khi người dùng nhấp vào nút Hủy, đóng modal thêm
+        btnAddCancel.onclick = function() {
+            addModal.style.display = "none";
+        }
+        
+        // Khi người dùng nhấp vào nút đóng (×), đóng modal chỉnh sửa
+        editCloseSpan.onclick = function() {
+            editModal.style.display = "none";
+        }
+        
+        // Khi người dùng nhấp vào nút Hủy, đóng modal chỉnh sửa
+        btnEditCancel.onclick = function() {
+            editModal.style.display = "none";
+        }
+        
+        // Khi người dùng nhấp vào bất kỳ đâu bên ngoài modal, đóng nó
+        window.onclick = function(event) {
+            if (event.target == addModal) {
+                addModal.style.display = "none";
+            }
+            if (event.target == editModal) {
+                editModal.style.display = "none";
+            }
+        }
+        
+        // Hàm mở modal chỉnh sửa và lấy thông tin sinh viên
+        function openEditModal(maSV) {
+            // Reset form và thông báo
+            document.getElementById("editSinhVienForm").reset();
+            editModalSuccess.style.display = "none";
+            editModalError.style.display = "none";
+            
+            // Lấy thông tin sinh viên theo mã
+            fetch('/admin/sinhvien/get/' + maSV)
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => { throw new Error(text) });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Điền thông tin vào form
+                    document.getElementById("editMaSV").value = data.maSV;
+                    document.getElementById("editHo").value = data.ho;
+                    document.getElementById("editTen").value = data.ten;
+                    document.getElementById("editNgaySinh").value = data.ngaySinh;
+                    document.getElementById("editDiaChi").value = data.diaChi;
+                    document.getElementById("editMaLop").value = data.maLop;
+                    document.getElementById("editLoginname").value = data.loginname;
+                    
+                    // Hiển thị modal
+                    editModal.style.display = "block";
+                })
+                .catch(error => {
+                    alert('Lỗi: ' + error.message);
+                });
+        }
+        
+        // Xử lý form thêm sinh viên bằng AJAX
+        document.getElementById("addSinhVienForm").addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Kiểm tra mật khẩu xác nhận
+            var password = document.getElementById('password').value;
+            var confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                addModalError.textContent = 'Mật khẩu xác nhận không khớp!';
+                addModalError.style.display = "block";
+                addModalSuccess.style.display = "none";
+                return;
+            }
+            
+            // Lấy dữ liệu form
+            var formData = new FormData();
+            formData.append('ho', document.getElementById('ho').value);
+            formData.append('ten', document.getElementById('ten').value);
+            formData.append('ngaySinh', document.getElementById('ngaySinh').value);
+            formData.append('diaChi', document.getElementById('diaChi').value);
+            formData.append('maLop', document.getElementById('maLop').value);
+            formData.append('loginname', document.getElementById('loginname').value);
+            formData.append('password', document.getElementById('password').value);
+            
+            // Gửi request AJAX
+            fetch('/admin/sinhvien/add-ajax', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { throw new Error(text) });
+                }
+                return response.text();
+            })
+            .then(data => {
+                // Hiển thị thông báo thành công
+                addModalSuccess.textContent = data;
+                addModalSuccess.style.display = "block";
+                addModalError.style.display = "none";
+                
+                // Reset form
+                document.getElementById("addSinhVienForm").reset();
+                
+                // Tải lại trang sau 1.5 giây
+                setTimeout(function() {
+                    window.location.reload();
+                }, 1500);
+            })
+            .catch(error => {
+                // Hiển thị thông báo lỗi
+                addModalError.textContent = error.message;
+                addModalError.style.display = "block";
+                addModalSuccess.style.display = "none";
+            });
+        });
+        
+        // Xử lý form chỉnh sửa sinh viên bằng AJAX
+        document.getElementById("editSinhVienForm").addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Kiểm tra mật khẩu xác nhận nếu có nhập mật khẩu mới
+            var password = document.getElementById('editPassword').value;
+            var confirmPassword = document.getElementById('editConfirmPassword').value;
+            
+            if (password && password !== confirmPassword) {
+                editModalError.textContent = 'Mật khẩu xác nhận không khớp!';
+                editModalError.style.display = "block";
+                editModalSuccess.style.display = "none";
+                return;
+            }
+            
+            // Lấy dữ liệu form
+            var formData = new FormData();
+            formData.append('maSV', document.getElementById('editMaSV').value);
+            formData.append('ho', document.getElementById('editHo').value);
+            formData.append('ten', document.getElementById('editTen').value);
+            formData.append('ngaySinh', document.getElementById('editNgaySinh').value);
+            formData.append('diaChi', document.getElementById('editDiaChi').value);
+            formData.append('maLop', document.getElementById('editMaLop').value);
+            
+            // Thêm mật khẩu nếu có
+            if (password) {
+                formData.append('password', password);
+            }
+            
+            // Gửi request AJAX
+            fetch('/admin/sinhvien/edit-ajax', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { throw new Error(text) });
+                }
+                return response.text();
+            })
+            .then(data => {
+                // Hiển thị thông báo thành công
+                editModalSuccess.textContent = data;
+                editModalSuccess.style.display = "block";
+                editModalError.style.display = "none";
+                
+                // Tải lại trang sau 1.5 giây
+                setTimeout(function() {
+                    window.location.reload();
+                }, 1500);
+            })
+            .catch(error => {
+                // Hiển thị thông báo lỗi
+                editModalError.textContent = error.message;
+                editModalError.style.display = "block";
+                editModalSuccess.style.display = "none";
+            });
+        });
+    </script>
+</body>
+</html> 

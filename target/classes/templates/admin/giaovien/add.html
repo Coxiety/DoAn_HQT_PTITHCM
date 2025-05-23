@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thêm Giáo viên - Hệ thống thi trắc nghiệm</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h3>Phòng Giáo Vụ</h3>
+                <p th:text="${username}">admin</p>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="/admin" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-home"></i>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/monhoc" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-book"></i>
+                        Quản lý môn học
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/lop" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-users"></i>
+                        Quản lý lớp
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/sinhvien" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-user-graduate"></i>
+                        Quản lý sinh viên
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/giaovien" class="sidebar-link active">
+                        <i class="sidebar-icon fas fa-chalkboard-teacher"></i>
+                        Quản lý giáo viên
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/bode" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-question-circle"></i>
+                        Quản lý câu hỏi
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/dangky" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-calendar-alt"></i>
+                        Chuẩn bị thi
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/taikhoan" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-user-shield"></i>
+                        Quản lý tài khoản
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/logout" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-sign-out-alt"></i>
+                        Đăng xuất
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main content -->
+        <div class="main-content">
+            <h1 class="dashboard-title">Thêm Giáo viên</h1>
+            
+            <!-- Thông báo -->
+            <div th:if="${errorMessage}" class="alert-error">
+                <span th:text="${errorMessage}"></span>
+            </div>
+            
+            <!-- Form thêm giáo viên -->
+            <div class="form-container">
+                <form th:action="@{/admin/giaovien/add}" method="post" th:object="${giaoVienDTO}">
+                    <div class="form-section">
+                        <h2 class="section-title">Thông tin giáo viên</h2>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="ho">Họ <span class="required">*</span></label>
+                                <input type="text" id="ho" th:field="*{ho}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="ten">Tên <span class="required">*</span></label>
+                                <input type="text" id="ten" th:field="*{ten}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="diachi">Địa chỉ</label>
+                            <input type="text" id="diachi" th:field="*{diachi}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sodtll">Số điện thoại liên lạc</label>
+                            <input type="text" id="sodtll" th:field="*{sodtll}">
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h2 class="section-title">Thông tin tài khoản</h2>
+                        
+                        <div class="form-group">
+                            <label for="loginname">Tên đăng nhập <span class="required">*</span></label>
+                            <input type="text" id="loginname" th:field="*{loginname}" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="password">Mật khẩu <span class="required">*</span></label>
+                                <input type="password" id="password" th:field="*{password}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirmPassword">Xác nhận mật khẩu <span class="required">*</span></label>
+                                <input type="password" id="confirmPassword" th:field="*{confirmPassword}" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <a href="/admin/giaovien" class="btn-secondary">Hủy</a>
+                        <button type="submit" class="btn-primary">Lưu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Kiểm tra mật khẩu xác nhận
+        document.querySelector('form').addEventListener('submit', function(e) {
+            var password = document.getElementById('password').value;
+            var confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                alert('Mật khẩu xác nhận không khớp!');
+            }
+        });
+    </script>
+</body>
+</html> 

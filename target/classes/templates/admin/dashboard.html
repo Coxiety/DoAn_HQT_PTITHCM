@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản trị - Hệ thống thi trắc nghiệm</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h3>Phòng Giáo Vụ</h3>
+                <p th:text="${username}">admin</p>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="/admin" class="sidebar-link active">
+                        <i class="sidebar-icon fas fa-home"></i>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/monhoc" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-book"></i>
+                        Quản lý môn học
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/lop" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-users"></i>
+                        Quản lý lớp
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/sinhvien" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-user-graduate"></i>
+                        Quản lý sinh viên
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/giaovien" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-chalkboard-teacher"></i>
+                        Quản lý giáo viên
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/bode" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-question-circle"></i>
+                        Quản lý câu hỏi
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/dangky" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-calendar-alt"></i>
+                        Chuẩn bị thi
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/taikhoan" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-user-shield"></i>
+                        Quản lý tài khoản
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/logout" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-sign-out-alt"></i>
+                        Đăng xuất
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main content -->
+        <div class="main-content">
+            <h1 class="dashboard-title">Dashboard</h1>
+
+            <div class="stats-container">
+                <div class="stat-card primary">
+                    <div class="stat-info">
+                        <h3>Tổng số sinh viên</h3>
+                        <div class="stat-value">125</div>
+                    </div>
+                    <i class="fas fa-user-graduate stat-icon"></i>
+                </div>
+                
+                <div class="stat-card success">
+                    <div class="stat-info">
+                        <h3>Tổng số giáo viên</h3>
+                        <div class="stat-value">15</div>
+                    </div>
+                    <i class="fas fa-chalkboard-teacher stat-icon"></i>
+                </div>
+                
+                <div class="stat-card info">
+                    <div class="stat-info">
+                        <h3>Tổng số môn học</h3>
+                        <div class="stat-value">8</div>
+                    </div>
+                    <i class="fas fa-book stat-icon"></i>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <h2 style="padding: 15px; margin: 0; border-bottom: 1px solid #eee;">Lịch thi sắp tới</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Môn học</th>
+                            <th>Lớp</th>
+                            <th>Ngày thi</th>
+                            <th>Giáo viên</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Cơ sở dữ liệu phân tán</td>
+                            <td>D19CQCN01-N</td>
+                            <td>15/06/2025</td>
+                            <td>Nguyễn Văn A</td>
+                            <td><span class="status-badge pending">Chưa thi</span></td>
+                        </tr>
+                        <tr>
+                            <td>Mạng máy tính</td>
+                            <td>D19CQCN02-N</td>
+                            <td>18/06/2025</td>
+                            <td>Trần Thị B</td>
+                            <td><span class="status-badge pending">Chưa thi</span></td>
+                        </tr>
+                        <tr>
+                            <td>Hệ quản trị cơ sở dữ liệu</td>
+                            <td>D19CQCN03-N</td>
+                            <td>10/06/2025</td>
+                            <td>Lê Văn C</td>
+                            <td><span class="status-badge completed">Đã thi</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

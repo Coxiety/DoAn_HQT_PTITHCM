@@ -1,0 +1,96 @@
+USE [THI_TRAC_NGHIEM]
+GO
+
+-- Stored procedure để lấy tất cả giáo viên
+CREATE OR ALTER PROCEDURE [dbo].[sp_GIAOVIEN_GetAll]
+AS
+BEGIN
+    SELECT MAGV, HO, TEN, SODTLL, DIACHI FROM GIAOVIEN
+END
+GO
+
+-- Stored procedure để lấy giáo viên theo mã
+CREATE OR ALTER PROCEDURE [dbo].[sp_GIAOVIEN_GetByMaGV]
+    @MAGV NCHAR(8)
+AS
+BEGIN
+    SELECT MAGV, HO, TEN, SODTLL, DIACHI FROM GIAOVIEN WHERE MAGV = @MAGV
+END
+GO
+
+-- Stored procedure để thêm giáo viên mới
+CREATE OR ALTER PROCEDURE [dbo].[sp_GIAOVIEN_Insert]
+    @MAGV NCHAR(8),
+    @HO NVARCHAR(50),
+    @TEN NVARCHAR(10),
+    @SODTLL NVARCHAR(15),
+    @DIACHI NVARCHAR(100)
+AS
+BEGIN
+    INSERT INTO GIAOVIEN (MAGV, HO, TEN, SODTLL, DIACHI)
+    VALUES (@MAGV, @HO, @TEN, @SODTLL, @DIACHI)
+    
+    RETURN @@ROWCOUNT
+END
+GO
+
+-- Stored procedure để cập nhật thông tin giáo viên
+CREATE OR ALTER PROCEDURE [dbo].[sp_GIAOVIEN_Update]
+    @MAGV NCHAR(8),
+    @HO NVARCHAR(50),
+    @TEN NVARCHAR(10),
+    @SODTLL NVARCHAR(15),
+    @DIACHI NVARCHAR(100)
+AS
+BEGIN
+    UPDATE GIAOVIEN
+    SET HO = @HO,
+        TEN = @TEN,
+        SODTLL = @SODTLL,
+        DIACHI = @DIACHI
+    WHERE MAGV = @MAGV
+    
+    RETURN @@ROWCOUNT
+END
+GO
+
+-- Stored procedure để xóa giáo viên
+CREATE OR ALTER PROCEDURE [dbo].[sp_GIAOVIEN_Delete]
+    @MAGV NCHAR(8)
+AS
+BEGIN
+    DELETE FROM GIAOVIEN WHERE MAGV = @MAGV
+    
+    RETURN @@ROWCOUNT
+END
+GO
+
+-- Stored procedure để kiểm tra sự tồn tại của mã giáo viên
+CREATE OR ALTER PROCEDURE [dbo].[sp_GIAOVIEN_ExistsByMaGV]
+    @MAGV NCHAR(8)
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM GIAOVIEN WHERE MAGV = @MAGV)
+        RETURN 1
+    RETURN 0
+END
+GO
+
+-- Stored procedure để tạo mã giáo viên mới
+CREATE OR ALTER PROCEDURE [dbo].[sp_GIAOVIEN_GetNewMaGV]
+AS
+BEGIN
+    DECLARE @NextID INT
+    DECLARE @MaxID INT
+    DECLARE @NewMaGV NCHAR(8)
+    
+    SELECT @MaxID = ISNULL(MAX(CAST(SUBSTRING(MAGV, 3, LEN(MAGV) - 2) AS INT)), 0)
+    FROM GIAOVIEN
+    WHERE MAGV LIKE 'GV%' AND ISNUMERIC(SUBSTRING(MAGV, 3, LEN(MAGV) - 2)) = 1
+    
+    SET @NextID = @MaxID + 1
+    SET @NewMaGV = 'GV' + RIGHT('000' + CAST(@NextID AS VARCHAR(3)), 3)
+    
+    SELECT @NewMaGV AS MAGV
+END
+GO 

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${isNew} ? 'Thêm môn học mới' : 'Chỉnh sửa môn học'">Thêm/Sửa môn học</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <style>
+        .sidebar {
+            background-color: #343a40;
+            color: white;
+            height: 100vh;
+            position: fixed;
+            padding-top: 20px;
+        }
+        .sidebar a {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 10px 15px;
+            display: block;
+        }
+        .sidebar a:hover {
+            color: white;
+            text-decoration: none;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar .active {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        .content {
+            margin-left: 25%;
+            padding: 20px;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                padding-top: 0;
+            }
+            .content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <h5 class="text-center mb-4">HỆ THỐNG THI TRẮC NGHIỆM</h5>
+            <div class="text-center mb-4">
+                <i class="fas fa-user-circle fa-2x"></i>
+                <p class="mt-2 mb-0" th:text="${username}">admin</p>
+                <small>Phòng Giáo Vụ</small>
+            </div>
+            <a href="/admin/dashboard" class="d-block"><i class="fas fa-tachometer-alt mr-2"></i> Tổng quan</a>
+            <a href="/admin/monhoc" class="d-block active"><i class="fas fa-book mr-2"></i> Quản lý Môn học</a>
+            <a href="/admin/lop" class="d-block"><i class="fas fa-users mr-2"></i> Quản lý Lớp</a>
+            <a href="/admin/sinhvien" class="d-block"><i class="fas fa-user-graduate mr-2"></i> Quản lý Sinh viên</a>
+            <a href="/admin/giaovien" class="d-block"><i class="fas fa-chalkboard-teacher mr-2"></i> Quản lý Giáo viên</a>
+            <a href="/admin/cauhoi" class="d-block"><i class="fas fa-question-circle mr-2"></i> Quản lý Câu hỏi</a>
+            <a href="/admin/baithi" class="d-block"><i class="fas fa-file-alt mr-2"></i> Quản lý Bài thi</a>
+            <a href="/admin/bangdiem" class="d-block"><i class="fas fa-clipboard-list mr-2"></i> Quản lý Bảng điểm</a>
+            <a href="/logout" class="d-block mt-5"><i class="fas fa-sign-out-alt mr-2"></i> Đăng xuất</a>
+        </div>
+
+        <!-- Main content -->
+        <div class="col-md-9 col-lg-10 ml-auto content">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/admin/dashboard">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="/admin/monhoc">Quản lý Môn học</a></li>
+                    <li class="breadcrumb-item active" aria-current="page" th:text="${isNew} ? 'Thêm môn học mới' : 'Chỉnh sửa môn học'">Thêm/Sửa môn học</li>
+                </ol>
+            </nav>
+            
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0" th:text="${isNew} ? 'Thêm môn học mới' : 'Chỉnh sửa môn học'">Thêm/Sửa môn học</h5>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/admin/monhoc/save}" method="post" th:object="${monHoc}">
+                        <input type="hidden" name="isNew" th:value="${isNew}">
+                        
+                        <div class="form-group row">
+                            <label for="maMH" class="col-sm-2 col-form-label">Mã môn học <span class="text-danger">*</span></label>
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control" id="maMH" th:field="*{MAMH}" 
+                                       th:readonly="${!isNew}" required
+                                       placeholder="Nhập mã môn học (ví dụ: CNTT)">
+                                <small class="form-text text-muted">Mã môn học phải là duy nhất và không quá 10 ký tự.</small>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group row">
+                            <label for="tenMH" class="col-sm-2 col-form-label">Tên môn học <span class="text-danger">*</span></label>
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control" id="tenMH" th:field="*{TENMH}" 
+                                       required
+                                       placeholder="Nhập tên môn học (ví dụ: Công nghệ thông tin)">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group row">
+                            <div class="col-sm-10 offset-sm-2">
+                                <button type="submit" class="btn btn-primary mr-2">
+                                    <i class="fas fa-save"></i> Lưu
+                                </button>
+                                <a th:href="@{/admin/monhoc}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Hủy
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

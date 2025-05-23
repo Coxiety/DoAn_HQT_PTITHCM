@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Giáo viên - Hệ thống thi trắc nghiệm</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        /* CSS cho modal popup */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .modal-title {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        /* CSS cho thông báo trong modal */
+        .modal-message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .modal-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .modal-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h3>Phòng Giáo Vụ</h3>
+                <p th:text="${username}">admin</p>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="/admin" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-home"></i>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/monhoc" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-book"></i>
+                        Quản lý môn học
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/lop" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-users"></i>
+                        Quản lý lớp
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/sinhvien" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-user-graduate"></i>
+                        Quản lý sinh viên
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/giaovien" class="sidebar-link active">
+                        <i class="sidebar-icon fas fa-chalkboard-teacher"></i>
+                        Quản lý giáo viên
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/bode" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-question-circle"></i>
+                        Quản lý câu hỏi
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/dangky" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-calendar-alt"></i>
+                        Chuẩn bị thi
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/taikhoan" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-user-shield"></i>
+                        Quản lý tài khoản
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/logout" class="sidebar-link">
+                        <i class="sidebar-icon fas fa-sign-out-alt"></i>
+                        Đăng xuất
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main content -->
+        <div class="main-content">
+            <h1 class="dashboard-title">Quản lý Giáo viên</h1>
+            
+            <!-- Thông báo -->
+            <div th:if="${successMessage}" class="alert-success">
+                <span th:text="${successMessage}"></span>
+            </div>
+            <div th:if="${errorMessage}" class="alert-error">
+                <span th:text="${errorMessage}"></span>
+            </div>
+            
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <button id="btnAddGiaoVien" class="btn-primary">
+                    <i class="fas fa-plus"></i> Thêm Giáo viên
+                </button>
+            </div>
+            
+            <!-- Bảng danh sách giáo viên -->
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Mã GV</th>
+                            <th>Họ</th>
+                            <th>Tên</th>
+                            <th>Địa chỉ</th>
+                            <th>Số ĐT liên lạc</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="giaoVien : ${giaoViens}" th:if="${giaoViens != null && !giaoViens.empty}">
+                            <td th:text="${giaoVien.MAGV}"></td>
+                            <td th:text="${giaoVien.HO}"></td>
+                            <td th:text="${giaoVien.TEN}"></td>
+                            <td th:text="${giaoVien.DIACHI}"></td>
+                            <td th:text="${giaoVien.SODTLL}"></td>
+                            <td class="action-buttons">
+                                <button class="btn-small btn-edit" th:data-magv="${giaoVien.MAGV}" onclick="openEditModal(this.getAttribute('data-magv'))">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <a th:href="@{/admin/giaovien/delete/{maGV}(maGV=${giaoVien.MAGV})}" 
+                                   class="btn-small btn-delete"
+                                   onclick="return confirm('Bạn có chắc chắn muốn xóa giáo viên này?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${giaoViens == null || giaoViens.empty}">
+                            <td colspan="6" class="text-center">Không có dữ liệu</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Thêm Giáo Viên -->
+    <div id="addGiaoVienModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 class="modal-title">Thêm Giáo viên</h2>
+            
+            <!-- Thông báo trong modal -->
+            <div id="modalSuccess" class="modal-message modal-success"></div>
+            <div id="modalError" class="modal-message modal-error"></div>
+            
+            <!-- Form thêm giáo viên -->
+            <div class="form-container">
+                <form id="addGiaoVienForm">
+                    <div class="form-section">
+                        <h2 class="section-title">Thông tin giáo viên</h2>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="ho">Họ <span class="required">*</span></label>
+                                <input type="text" id="ho" name="ho" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="ten">Tên <span class="required">*</span></label>
+                                <input type="text" id="ten" name="ten" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="diachi">Địa chỉ</label>
+                            <input type="text" id="diachi" name="diachi">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sodtll">Số điện thoại liên lạc</label>
+                            <input type="text" id="sodtll" name="sodtll">
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h2 class="section-title">Thông tin tài khoản</h2>
+                        
+                        <div class="form-group">
+                            <label for="loginname">Tên đăng nhập <span class="required">*</span></label>
+                            <input type="text" id="loginname" name="loginname" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="password">Mật khẩu <span class="required">*</span></label>
+                                <input type="password" id="password" name="password" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirmPassword">Xác nhận mật khẩu <span class="required">*</span></label>
+                                <input type="password" id="confirmPassword" name="confirmPassword" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" id="btnCancel">Hủy</button>
+                        <button type="submit" class="btn-primary">Lưu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Chỉnh sửa Giáo Viên -->
+    <div id="editGiaoVienModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 class="modal-title">Cập nhật Giáo viên</h2>
+            
+            <!-- Thông báo trong modal -->
+            <div id="editModalSuccess" class="modal-message modal-success"></div>
+            <div id="editModalError" class="modal-message modal-error"></div>
+            
+            <!-- Form chỉnh sửa giáo viên -->
+            <div class="form-container">
+                <form id="editGiaoVienForm">
+                    <input type="hidden" id="editMaGV" name="maGV">
+                    
+                    <div class="form-section">
+                        <h2 class="section-title">Thông tin giáo viên</h2>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="editHo">Họ <span class="required">*</span></label>
+                                <input type="text" id="editHo" name="ho" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editTen">Tên <span class="required">*</span></label>
+                                <input type="text" id="editTen" name="ten" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editDiachi">Địa chỉ</label>
+                            <input type="text" id="editDiachi" name="diachi">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editSodtll">Số điện thoại liên lạc</label>
+                            <input type="text" id="editSodtll" name="sodtll">
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h2 class="section-title">Thông tin tài khoản</h2>
+                        
+                        <div class="form-group">
+                            <label for="editLoginname">Tên đăng nhập</label>
+                            <input type="text" id="editLoginname" name="loginname" readonly>
+                            <small>Tên đăng nhập không thể thay đổi</small>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="editPassword">Mật khẩu mới</label>
+                                <input type="password" id="editPassword" name="password">
+                                <small>Để trống nếu không muốn thay đổi mật khẩu</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="editConfirmPassword">Xác nhận mật khẩu mới</label>
+                                <input type="password" id="editConfirmPassword" name="confirmPassword">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" id="btnEditCancel">Hủy</button>
+                        <button type="submit" class="btn-primary">Lưu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Lấy modal thêm giáo viên
+        var addModal = document.getElementById("addGiaoVienModal");
+        
+        // Lấy nút mở modal thêm
+        var addBtn = document.getElementById("btnAddGiaoVien");
+        
+        // Lấy phần tử đóng modal thêm
+        var addCloseSpan = addModal.getElementsByClassName("close")[0];
+        var btnAddCancel = document.getElementById("btnCancel");
+        
+        // Lấy thông báo trong modal thêm
+        var addModalSuccess = document.getElementById("modalSuccess");
+        var addModalError = document.getElementById("modalError");
+        
+        // Lấy modal chỉnh sửa giáo viên
+        var editModal = document.getElementById("editGiaoVienModal");
+        
+        // Lấy phần tử đóng modal chỉnh sửa
+        var editCloseSpan = editModal.getElementsByClassName("close")[0];
+        var btnEditCancel = document.getElementById("btnEditCancel");
+        
+        // Lấy thông báo trong modal chỉnh sửa
+        var editModalSuccess = document.getElementById("editModalSuccess");
+        var editModalError = document.getElementById("editModalError");
+        
+        // Khi người dùng nhấp vào nút thêm, mở modal thêm
+        addBtn.onclick = function() {
+            addModal.style.display = "block";
+            // Reset form và thông báo
+            document.getElementById("addGiaoVienForm").reset();
+            addModalSuccess.style.display = "none";
+            addModalError.style.display = "none";
+        }
+        
+        // Khi người dùng nhấp vào nút đóng (×), đóng modal thêm
+        addCloseSpan.onclick = function() {
+            addModal.style.display = "none";
+        }
+        
+        // Khi người dùng nhấp vào nút Hủy, đóng modal thêm
+        btnAddCancel.onclick = function() {
+            addModal.style.display = "none";
+        }
+        
+        // Khi người dùng nhấp vào nút đóng (×), đóng modal chỉnh sửa
+        editCloseSpan.onclick = function() {
+            editModal.style.display = "none";
+        }
+        
+        // Khi người dùng nhấp vào nút Hủy, đóng modal chỉnh sửa
+        btnEditCancel.onclick = function() {
+            editModal.style.display = "none";
+        }
+        
+        // Khi người dùng nhấp vào bất kỳ đâu bên ngoài modal, đóng nó
+        window.onclick = function(event) {
+            if (event.target == addModal) {
+                addModal.style.display = "none";
+            }
+            if (event.target == editModal) {
+                editModal.style.display = "none";
+            }
+        }
+        
+        // Hàm mở modal chỉnh sửa và lấy thông tin giáo viên
+        function openEditModal(maGV) {
+            // Reset form và thông báo
+            document.getElementById("editGiaoVienForm").reset();
+            editModalSuccess.style.display = "none";
+            editModalError.style.display = "none";
+            
+            // Lấy thông tin giáo viên theo mã
+            fetch('/admin/giaovien/get/' + maGV)
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => { throw new Error(text) });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Điền thông tin vào form
+                    document.getElementById("editMaGV").value = data.maGV;
+                    document.getElementById("editHo").value = data.ho;
+                    document.getElementById("editTen").value = data.ten;
+                    document.getElementById("editDiachi").value = data.diachi;
+                    document.getElementById("editSodtll").value = data.sodtll;
+                    document.getElementById("editLoginname").value = data.loginname;
+                    
+                    // Hiển thị modal
+                    editModal.style.display = "block";
+                })
+                .catch(error => {
+                    alert('Lỗi: ' + error.message);
+                });
+        }
+        
+        // Xử lý form thêm giáo viên bằng AJAX
+        document.getElementById("addGiaoVienForm").addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Kiểm tra mật khẩu xác nhận
+            var password = document.getElementById('password').value;
+            var confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                addModalError.textContent = 'Mật khẩu xác nhận không khớp!';
+                addModalError.style.display = "block";
+                addModalSuccess.style.display = "none";
+                return;
+            }
+            
+            // Lấy dữ liệu form
+            var formData = new FormData();
+            formData.append('ho', document.getElementById('ho').value);
+            formData.append('ten', document.getElementById('ten').value);
+            formData.append('diachi', document.getElementById('diachi').value);
+            formData.append('sodtll', document.getElementById('sodtll').value);
+            formData.append('loginname', document.getElementById('loginname').value);
+            formData.append('password', document.getElementById('password').value);
+            
+            // Gửi request AJAX
+            fetch('/admin/giaovien/add-ajax', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { throw new Error(text) });
+                }
+                return response.text();
+            })
+            .then(data => {
+                // Hiển thị thông báo thành công
+                addModalSuccess.textContent = data;
+                addModalSuccess.style.display = "block";
+                addModalError.style.display = "none";
+                
+                // Reset form
+                document.getElementById("addGiaoVienForm").reset();
+                
+                // Tải lại trang sau 1.5 giây
+                setTimeout(function() {
+                    window.location.reload();
+                }, 1500);
+            })
+            .catch(error => {
+                // Hiển thị thông báo lỗi
+                addModalError.textContent = error.message;
+                addModalError.style.display = "block";
+                addModalSuccess.style.display = "none";
+            });
+        });
+        
+        // Xử lý form chỉnh sửa giáo viên bằng AJAX
+        document.getElementById("editGiaoVienForm").addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Kiểm tra mật khẩu xác nhận nếu có nhập mật khẩu mới
+            var password = document.getElementById('editPassword').value;
+            var confirmPassword = document.getElementById('editConfirmPassword').value;
+            
+            if (password && password !== confirmPassword) {
+                editModalError.textContent = 'Mật khẩu xác nhận không khớp!';
+                editModalError.style.display = "block";
+                editModalSuccess.style.display = "none";
+                return;
+            }
+            
+            // Lấy dữ liệu form
+            var formData = new FormData();
+            formData.append('maGV', document.getElementById('editMaGV').value);
+            formData.append('ho', document.getElementById('editHo').value);
+            formData.append('ten', document.getElementById('editTen').value);
+            formData.append('diachi', document.getElementById('editDiachi').value);
+            formData.append('sodtll', document.getElementById('editSodtll').value);
+            
+            // Thêm mật khẩu nếu có
+            if (password) {
+                formData.append('password', password);
+            }
+            
+            // Gửi request AJAX
+            fetch('/admin/giaovien/edit-ajax', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { throw new Error(text) });
+                }
+                return response.text();
+            })
+            .then(data => {
+                // Hiển thị thông báo thành công
+                editModalSuccess.textContent = data;
+                editModalSuccess.style.display = "block";
+                editModalError.style.display = "none";
+                
+                // Tải lại trang sau 1.5 giây
+                setTimeout(function() {
+                    window.location.reload();
+                }, 1500);
+            })
+            .catch(error => {
+                // Hiển thị thông báo lỗi
+                editModalError.textContent = error.message;
+                editModalError.style.display = "block";
+                editModalSuccess.style.display = "none";
+            });
+        });
+    </script>
+</body>
+</html> 
